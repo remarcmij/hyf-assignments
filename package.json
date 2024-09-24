@@ -3,11 +3,20 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
+    "dev:client": "cd client && npm run dev && cd ..",
+    "dev:server": "cd server && npm run dev && cd ..",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "setup": "npm run setup:client && npm run setup:server",
+    "setup:client": "cd client && npm run setup && cd ..",
+    "setup:server": "cd server && npm run setup && cd ..",
+    "postinstall": "npm run setup"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": ""
-
+  "description": "",
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
 }
