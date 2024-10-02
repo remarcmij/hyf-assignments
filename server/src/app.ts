@@ -5,12 +5,18 @@ import morgan from 'morgan';
 import path from 'node:path';
 import { fileURLToPath } from 'url';
 
+import { forwardGraphQLRequest } from './controllers/graphql.controller.js';
+
 const app = express();
 
 app.use(morgan('tiny'));
 app.use(express.json());
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+app.use('/graphql', forwardGraphQLRequest);
+
+const __dirname = path.dirname(
+  fileURLToPath(import.meta.url).replaceAll('\\', '/')
+);
 const frontendPath = path.normalize(path.join(__dirname, '../../client/dist'));
 
 // Serve the client
