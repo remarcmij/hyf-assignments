@@ -1,35 +1,95 @@
-import { useState } from 'react';
-import reactLogo from './assets/react.svg';
-import viteLogo from '/vite.svg';
-import './App.css';
+import { gql, useQuery } from '@apollo/client';
+import React from 'react';
 
-function App() {
-  const [count, setCount] = useState(0);
+import './App.css';
+import RepositorySelect from './components/RepositorySelect';
+
+type PullRequest = {
+  databaseId: number;
+  title: string;
+  headRepository: {
+    nameWithOwner: string;
+  };
+  headRefName: string;
+  createdAt: string;
+  updatedAt: string;
+  labels: {
+    nodes: {
+      name: string;
+      color: string;
+    }[];
+  };
+  reviewDecision: string;
+};
+
+const createRepositoryQuery = (owner: string) => gql`
+  {
+      organization(login: "${owner}") {
+          repositories(first: 100, orderBy: { field: CREATED_AT, direction: DESC}) {
+              nodes {
+                  name
+                  databaseId
+                  pullRequests(states: OPEN) {
+                    totalCount
+                }
+              }
+          }
+      }
+  }
+`;
+
+const createPullRequestQuery = (owner: string, repo: string) => gql`
+  {
+      organization(login: "${owner}") {
+          repository(name: "${repo}") {
+              pullRequests(first: 100, states: OPEN) {
+                  nodes {
+                      databaseId
+                      title
+                      headRepository {
+                          nameWithOwner
+                      }
+                      headRefName
+                      createdAt
+                      updatedAt
+                      labels(first: 10) {
+                          nodes {
+                              name
+                              color
+                          }
+                      }
+                      reviewDecision
+                  }
+              }
+          }
+      }
+  }
+`;
+
+const PullRequestList: React.FC = () => {
+  const query = createRepositoryQuery('HackYourAssignment');
+  const { loading, error, data } = useQuery(query);
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error : {error.message}</p>;
+
+  const onChange = (repositoryName: string) => {
+    console.log(repositoryName);
+  };
 
   return (
+    <RepositorySelect
+      nodes={data.organization.repositories.nodes}
+      onChange={onChange}
+    />
+  );
+};
+
+const App: React.FC = () => {
+  return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <PullRequestList />
     </>
   );
-}
+};
 
 export default App;
