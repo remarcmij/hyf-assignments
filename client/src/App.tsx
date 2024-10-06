@@ -1,26 +1,11 @@
 import { gql, useQuery } from '@apollo/client';
-import React from 'react';
+import React, { useState } from 'react';
 
 import './App.css';
 import RepositorySelect from './components/RepositorySelect';
 
-type PullRequest = {
-  databaseId: number;
-  title: string;
-  headRepository: {
-    nameWithOwner: string;
-  };
-  headRefName: string;
-  createdAt: string;
-  updatedAt: string;
-  labels: {
-    nodes: {
-      name: string;
-      color: string;
-    }[];
-  };
-  reviewDecision: string;
-};
+import PullRequestList from './components/PullRequestList';
+import { GITHUB_ORGANIZATION } from './constants';
 
 const createRepositoryQuery = (owner: string) => gql`
   {
@@ -38,56 +23,22 @@ const createRepositoryQuery = (owner: string) => gql`
   }
 `;
 
-const createPullRequestQuery = (owner: string, repo: string) => gql`
-  {
-      organization(login: "${owner}") {
-          repository(name: "${repo}") {
-              pullRequests(first: 100, states: OPEN) {
-                  nodes {
-                      databaseId
-                      title
-                      headRepository {
-                          nameWithOwner
-                      }
-                      headRefName
-                      createdAt
-                      updatedAt
-                      labels(first: 10) {
-                          nodes {
-                              name
-                              color
-                          }
-                      }
-                      reviewDecision
-                  }
-              }
-          }
-      }
-  }
-`;
+const App: React.FC = () => {
+  const [repoName, setRepoName] = useState('');
 
-const PullRequestList: React.FC = () => {
-  const query = createRepositoryQuery('HackYourAssignment');
+  const query = createRepositoryQuery(GITHUB_ORGANIZATION);
   const { loading, error, data } = useQuery(query);
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error : {error.message}</p>;
 
-  const onChange = (repositoryName: string) => {
-    console.log(repositoryName);
-  };
-
-  return (
-    <RepositorySelect
-      nodes={data.organization.repositories.nodes}
-      onChange={onChange}
-    />
-  );
-};
-
-const App: React.FC = () => {
   return (
     <>
-      <PullRequestList />
+      <RepositorySelect
+        value={repoName}
+        nodes={data.organization.repositories.nodes}
+        onRepoChange={setRepoName}
+      />
+      {repoName && <PullRequestList repoName={repoName} />}
     </>
   );
 };

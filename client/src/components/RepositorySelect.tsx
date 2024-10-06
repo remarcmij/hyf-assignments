@@ -2,9 +2,6 @@ import MenuItem from '@mui/material/MenuItem';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import React from 'react';
 
-import { Badge } from '@mui/material';
-import gitPullRequestSvg from '../assets/git-pull-request-svgrepo-com.svg';
-
 type RepositoryNode = {
   name: string;
   databaseId: number;
@@ -14,24 +11,22 @@ type RepositoryNode = {
 };
 
 type Props = Readonly<{
+  value: string;
   nodes: RepositoryNode[];
-  onChange(repositoryName: string): void;
+  onRepoChange(repositoryName: string): void;
 }>;
 
-const RepositorySelect: React.FC<Props> = ({ nodes, onChange }) => {
+const RepositorySelect: React.FC<Props> = ({ value, nodes, onRepoChange }) => {
   const handleChange = (event: SelectChangeEvent) => {
-    onChange(event.target.value);
+    onRepoChange(event.target.value);
   };
 
   nodes = nodes.filter((node) => /-cohort\d+/i.test(node.name));
   return (
-    <Select value="" onChange={handleChange}>
+    <Select value={value} onChange={handleChange}>
       {nodes.map((node) => (
         <MenuItem key={node.databaseId} value={node.name}>
-          {node.name}
-          <Badge badgeContent={node.pullRequests.totalCount} color="primary">
-            <img src={gitPullRequestSvg} alt="pull request" />
-          </Badge>
+          {`${node.name} (${node.pullRequests.totalCount})`}
         </MenuItem>
       ))}
     </Select>
